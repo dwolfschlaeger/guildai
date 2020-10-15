@@ -625,7 +625,7 @@ def _windows_symlink(target, link):
     if os.path.isdir(target):
         args = ["mklink", "/D", link, target]
     else:
-        args = ["mklink", link, target]
+        args = ["mklink /J", link, target]
     try:
         subprocess.check_output(args, shell=True, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:

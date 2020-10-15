@@ -22,6 +22,7 @@ import logging
 import os
 import random
 import sys
+import subprocess
 
 import six
 
@@ -147,12 +148,23 @@ def init_trial_run(batch_run, trial_flag_vals, run_dir=None):
     op_util.set_run_staged(run)
     return run
 
+def _windows_symlink(target, link):
+    args = ["mklink", "/J", link, target]
+    try:
+        subprocess.check_output(args, shell=True, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+        log.error(e.output)
+        raise
+
 
 def _link_to_trial(batch_run, trial_run):
     trial_link = os.path.join(batch_run.dir, trial_run.id)
     rel_trial_path = os.path.relpath(trial_run.dir, os.path.dirname(trial_link))
     util.ensure_deleted(trial_link)
-    os.symlink(rel_trial_path, trial_link)
+    if os.name == 'nt':
+        _windows_symlink(rel_trial_path, trial_path)
+    else:
+        os.symlink(rel_trial_path, trial_link)
 
 
 def _trial_label(proto_run, trial_flag_vals):
